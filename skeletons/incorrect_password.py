@@ -14,25 +14,25 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(701, 121)
-        self.label = QtWidgets.QLabel(Form)
-        self.label.setGeometry(QtCore.QRect(10, 30, 681, 51))
+        self.Hey = QtWidgets.QLabel(Form)
+        self.Hey.setGeometry(QtCore.QRect(10, 30, 681, 51))
         font = QtGui.QFont()
         font.setFamily("Open Sans SemiBold")
         font.setPointSize(11)
         font.setBold(True)
         font.setWeight(75)
-        self.label.setFont(font)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.pushButton = QtWidgets.QPushButton(Form)
-        self.pushButton.setGeometry(QtCore.QRect(20, 80, 661, 28))
+        self.Hey.setFont(font)
+        self.Hey.setAlignment(QtCore.Qt.AlignCenter)
+        self.Hey.setObjectName("Hey")
+        self.OK = QtWidgets.QPushButton(Form)
+        self.OK.setGeometry(QtCore.QRect(20, 80, 661, 28))
         font = QtGui.QFont()
         font.setFamily("Open Sans SemiBold")
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
-        self.pushButton.setFont(font)
-        self.pushButton.setObjectName("pushButton")
+        self.OK.setFont(font)
+        self.OK.setObjectName("OK")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -40,8 +40,8 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.label.setText(_translate("Form", "Пароль введен неправильно! Количество оставшихся попыток: "))
-        self.pushButton.setText(_translate("Form", "PushButton"))
+        self.Hey.setText(_translate("Form", "Пароль введен неправильно! Количество оставшихся попыток: "))
+        self.OK.setText(_translate("Form", "ОК"))
 
 
 if __name__ == "__main__":
