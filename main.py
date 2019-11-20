@@ -49,20 +49,22 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
         c.execute(f'''SELECT * FROM data WHERE login="{login}" AND password="{password}"''')
 
-        if not len(c.fetchall()):
+        account_data = c.fetchall()
+
+        if not len(account_data):
             times_trying_to_auth += 1
             self.error = ErrorWindow(times_trying_to_auth)
             self.error.show()
 
-        posit = c.fetchall()
+        else:
+            posit = account_data[0][1]
 
-        print(posit)
+            conn.close()
 
-        conn.close()
+            self.wind = MainWindowUser(login, posit)
+            self.wind.show()
 
         # add authing by password
-        self.wind = MainWindowUser(login, "dddd")
-        self.wind.show()
 
 
 def main():
