@@ -15,6 +15,11 @@ class ErrorWindow(QtWidgets.QWidget, Err_Auth_Window):
 
         self.Hey.setText('Пароль введен неправильно! Количество оставшихся попыток: ' + str(times))
 
+        self.OK.clicked.connect(self.leave)
+
+    def leave(self):
+        self.close()
+
 
 class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
     def __init__(self, login, posit):
@@ -53,7 +58,11 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
         if not len(account_data):
             times_trying_to_auth += 1
-            self.error = ErrorWindow(times_trying_to_auth)
+
+            if times_trying_to_auth == 3:
+                times_trying_to_auth = 0
+
+            self.error = ErrorWindow(3 - times_trying_to_auth)
             self.error.show()
 
         else:
