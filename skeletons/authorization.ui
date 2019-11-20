@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>436</width>
     <height>300</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>381</width>
+     <width>418</width>
      <height>271</height>
     </rect>
    </property>
@@ -30,8 +30,8 @@
       </property>
       <property name="font">
        <font>
-        <family>Montserrat</family>
-        <pointsize>9</pointsize>
+        <family>Open Sans SemiBold</family>
+        <pointsize>11</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
@@ -48,8 +48,8 @@
      <widget class="QLabel" name="label_3">
       <property name="font">
        <font>
-        <family>Montserrat</family>
-        <pointsize>9</pointsize>
+        <family>Open Sans SemiBold</family>
+        <pointsize>12</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
@@ -69,8 +69,8 @@
      <widget class="QLabel" name="label">
       <property name="font">
        <font>
-        <family>Montserrat</family>
-        <pointsize>9</pointsize>
+        <family>Open Sans SemiBold</family>
+        <pointsize>12</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
@@ -88,6 +88,12 @@
     </item>
     <item>
      <widget class="QPushButton" name="Authorization">
+      <property name="font">
+       <font>
+        <family>Open Sans SemiBold</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>Войти</string>
       </property>

@@ -4,6 +4,8 @@ from skeletons.auth import Ui_Form
 from skeletons.mainwind_users import Ui_MainWindow as Mw_user
 import sqlite3
 
+times_trying_to_auth = 0
+
 
 class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
     def __init__(self, login, posit):
