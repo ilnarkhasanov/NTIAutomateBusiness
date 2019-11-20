@@ -28,6 +28,14 @@
       <property name="enabled">
        <bool>true</bool>
       </property>
+      <property name="font">
+       <font>
+        <family>Montserrat</family>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Пользовательская система организации</string>
       </property>
@@ -38,6 +46,14 @@
     </item>
     <item>
      <widget class="QLabel" name="label_3">
+      <property name="font">
+       <font>
+        <family>Montserrat</family>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Логин</string>
       </property>
@@ -47,10 +63,18 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit"/>
+     <widget class="QLineEdit" name="login"/>
     </item>
     <item>
      <widget class="QLabel" name="label">
+      <property name="font">
+       <font>
+        <family>Montserrat</family>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Пароль</string>
       </property>
@@ -60,7 +84,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit_2"/>
+     <widget class="QLineEdit" name="password"/>
     </item>
     <item>
      <widget class="QPushButton" name="Authorization">
