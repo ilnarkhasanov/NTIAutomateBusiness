@@ -1,11 +1,65 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from sys import argv, exit
 from skeletons.auth import Ui_Form
 from skeletons.mainwind_users import Ui_MainWindow as Mw_user
 from skeletons.incorrect_password import Ui_Form as Err_Auth_Window
+from skeletons.block import Ui_Form as Block_Skeleton
+from skeletons.mainwind_admin import Ui_MainWindow as Mw_Admin
+from skeletons.admin_skel.add_user import Ui_Form as AddingUserSkeleton
+from skeletons.admin_skel.remove_user import Ui_Form as RemovingUserSkeleton
 import sqlite3
 
 times_trying_to_auth = 0
+
+
+# class BlockWindow(QtWidgets.QWidget, Block_Skeleton):
+#     def __init__(self):
+#         super().__init__()
+#         self.setupUi(self)
+#
+#     def timer_Event(self):
+#         global time
+#         time = time.addSecs(1)
+#         print(time)
+#
+#     app = QtCore.QCoreApplication(argv)
+#
+#     timer = QtCore.QTimer()
+#     time = QtCore.QTime(0, 0, 0)
+#
+#     timer.timeout.connect(timer_Event)
+#     timer.start(100)
+#
+#     exit(app.exec_())
+
+
+class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
+class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
+class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        self.addUserButton.clicked.connect(self.adding_user)
+        self.removeUserButton.clicked.connect(self.removing_user)
+
+    def adding_user(self):
+        self.add_new_user = AddingUserByAdmin()
+        self.add_new_user.show()
+
+    def removing_user(self):
+        self.remove_user = RemovingUserByAdmin()
+        self.remove_user.show()
 
 
 class ErrorWindow(QtWidgets.QWidget, Err_Auth_Window):
@@ -46,6 +100,9 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
     def auth(self):
         global times_trying_to_auth
 
+        self.qww = MainWindowAdmin()
+        self.qww.show()
+
         login = self.ui.login.text()
         password = self.ui.password.text()
 
@@ -62,8 +119,10 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
             if times_trying_to_auth == 3:
                 times_trying_to_auth = 0
 
-            self.error = ErrorWindow(3 - times_trying_to_auth)
-            self.error.show()
+                # self.open_error()
+            else:
+                self.error = ErrorWindow(3 - times_trying_to_auth)
+                self.error.show()
 
         else:
             posit = account_data[0][1]
@@ -74,6 +133,10 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
             self.wind.show()
 
         # add authing by password
+
+    # def open_error(self):
+    #     self.block = BlockWindow()
+    #     self.block.show()
 
 
 def main():
