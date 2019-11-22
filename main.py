@@ -99,7 +99,7 @@ class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
         super().__init__()
         self.setupUi(self)
 
-        # self.setWindowTitle('Профиль - ' + self.login)
+        self.setWindowTitle('Профиль - ' + login)
 
         self.your_login.setText("Ваш логин: " + login)
         self.your_password.setText("Ваша должность: Администратор/разработчик системы")
@@ -144,7 +144,7 @@ class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
         self.login = login
         self.posit = posit
 
-        # self.setWindowTitle('Профиль - ' + self.login)
+        self.setWindowTitle('Профиль - ' + self.login)
 
         self.your_login.setText("Ваш логин: " + login)
         self.your_password.setText("Ваша должность: " + posit)
