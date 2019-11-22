@@ -23,18 +23,18 @@ class Ui_Form(object):
         font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
-        self.lineEdit = QtWidgets.QLineEdit(Form)
-        self.lineEdit.setGeometry(QtCore.QRect(200, 30, 261, 22))
-        self.lineEdit.setObjectName("lineEdit")
-        self.registerNewUser = QtWidgets.QPushButton(Form)
-        self.registerNewUser.setGeometry(QtCore.QRect(10, 60, 451, 28))
+        self.userLogin = QtWidgets.QLineEdit(Form)
+        self.userLogin.setGeometry(QtCore.QRect(200, 30, 261, 22))
+        self.userLogin.setObjectName("userLogin")
+        self.deleteUser = QtWidgets.QPushButton(Form)
+        self.deleteUser.setGeometry(QtCore.QRect(10, 60, 451, 28))
         font = QtGui.QFont()
         font.setFamily("Open Sans SemiBold")
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
-        self.registerNewUser.setFont(font)
-        self.registerNewUser.setObjectName("registerNewUser")
+        self.deleteUser.setFont(font)
+        self.deleteUser.setObjectName("deleteUser")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -43,7 +43,7 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.label.setText(_translate("Form", "Логин пользователя: "))
-        self.registerNewUser.setText(_translate("Form", "Регистрация"))
+        self.deleteUser.setText(_translate("Form", "Регистрация"))
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@
     <string>Логин пользователя: </string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit">
+  <widget class="QLineEdit" name="userLogin">
    <property name="geometry">
     <rect>
      <x>200</x>
@@ -44,7 +44,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="registerNewUser">
+  <widget class="QPushButton" name="deleteUser">
    <property name="geometry">
     <rect>
      <x>10</x>

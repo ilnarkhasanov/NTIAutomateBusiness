@@ -59,14 +59,46 @@ class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
         super().__init__()
         self.setupUi(self)
 
+        self.deleteUser.clicked.connect(self.removingUserFunc)
+
+    def removingUserFunc(self):
+        if self.userLogin.text() == "":
+            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Логин пуст! Введите логин')
+        else:
+            login = self.userLogin.text()
+
+            conn = sqlite3.connect('databases/data.db')
+            c = conn.cursor()
+            c.execute(f'SELECT * FROM data WHERE login="{login}";')
+
+            account_data = c.fetchall()
+
+            if not len(account_data):
+                QtWidgets.QMessageBox.about(self, 'Внимание!', 'Такого логина не существует!')
+
+            else:
+                c.execute(f'DELETE FROM data WHERE login="{login}";')
+                conn.commit()
+            conn.close()
+
 
 class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
-    def __init__(self):
+    def __init__(self, login):
         super().__init__()
         self.setupUi(self)
 
+        self.your_login.setText("Ваш логин: " + login)
+        self.your_password.setText("Ваша должность: Администратор/разработчик системы")
+
         self.addUserButton.clicked.connect(self.adding_user)
         self.removeUserButton.clicked.connect(self.removing_user)
+
+        self.action.triggered.connect(self.leaving)
+
+    def leaving(self):
+        self.reauth = AuthorizationWindow()
+        self.reauth.show()
+        self.close()
 
     def adding_user(self):
         self.add_new_user = AddingUserByAdmin()
@@ -115,9 +147,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
     def auth(self):
         global times_trying_to_auth
 
-        self.qww = MainWindowAdmin()
-        self.qww.show()
-
         login = self.ui.login.text()
         password = self.ui.password.text()
 
@@ -144,8 +173,13 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
             conn.close()
 
-            self.wind = MainWindowUser(login, posit)
-            self.wind.show()
+            if posit == "Администратор/разработчик системы":
+                self.windadm = MainWindowAdmin(login)
+                self.windadm.show()
+            else:
+                self.wind = MainWindowUser(login, posit)
+                self.wind.show()
+        self.close()
 
         # add authing by password
 
