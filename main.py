@@ -48,10 +48,20 @@ class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
         else:
             conn = sqlite3.connect('databases/data.db')
             c = conn.cursor()
-            c.execute(f'INSERT INTO data (login, posit, password) VALUES ("{login}", "{posit}", "123");')
-            conn.commit()
-            conn.close()
-            self.destroy()
+
+            c.execute(f'SELECT * FROM data WHERE login="{login}";')
+
+            if len(c.fetchall()):
+                QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                            f'Пользователь с логином {login} уже существует в системе!')
+            else:
+                c.execute(f'INSERT INTO data (login, posit, password) VALUES ("{login}", "{posit}", "123");')
+                conn.commit()
+                conn.close()
+
+                QtWidgets.QMessageBox.about(self, 'Внимание!', f'Пользователь с логином "{login}" успешно добавлен!')
+
+            self.close()
 
 
 class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
@@ -79,6 +89,8 @@ class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
             else:
                 c.execute(f'DELETE FROM data WHERE login="{login}";')
                 conn.commit()
+                QtWidgets.QMessageBox.about(self, 'Внимание!', f'Аккаунт с логином {login} успешно удалён')
+                self.close()
             conn.close()
 
 
@@ -86,6 +98,8 @@ class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
     def __init__(self, login):
         super().__init__()
         self.setupUi(self)
+
+        # self.setWindowTitle('Профиль - ' + self.login)
 
         self.your_login.setText("Ваш логин: " + login)
         self.your_password.setText("Ваша должность: Администратор/разработчик системы")
@@ -130,9 +144,18 @@ class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
         self.login = login
         self.posit = posit
 
+        # self.setWindowTitle('Профиль - ' + self.login)
+
         self.your_login.setText("Ваш логин: " + login)
         self.your_password.setText("Ваша должность: " + posit)
         # описание деятельности
+
+        self.action.triggered.connect(self.leavingThis)
+
+    def leavingThis(self):
+        self.reauth = AuthorizationWindow()
+        self.reauth.show()
+        self.close()
 
 
 class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
