@@ -37,6 +37,21 @@ class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.registerNewUser.clicked.connect(self.registring)
+
+    def registring(self):
+        login = self.loginOfNewUser.text()
+        posit = self.positionOfNewUser.currentText()
+
+        if (login == ""):
+            QtWidgets.QMessageBox.about(self, "Внимание", "Логин пуст! Введите логин.")
+        else:
+            conn = sqlite3.connect('databases/data.db')
+            c = conn.cursor()
+            c.execute(f'INSERT INTO data (login, posit, password) VALUES ("{login}", "{posit}", "123");')
+            conn.commit()
+            conn.close()
+            self.destroy()
 
 
 class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):

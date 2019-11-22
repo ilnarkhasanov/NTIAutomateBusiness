@@ -1,0 +1,5 @@
+#!C:\Work Space\Khasanoff\NTIBusiness1\venv\Scripts\python.exe
+from cx_Freeze.setupwriter import main
+
+main()
+
