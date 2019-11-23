@@ -1,36 +1,69 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from sys import argv, exit
 from skeletons.auth import Ui_Form
 from skeletons.mainwind_users import Ui_MainWindow as Mw_user
 from skeletons.incorrect_password import Ui_Form as Err_Auth_Window
-from skeletons.block import Ui_Form as Block_Skeleton
 from skeletons.mainwind_admin import Ui_MainWindow as Mw_Admin
 from skeletons.admin_skel.add_user import Ui_Form as AddingUserSkeleton
 from skeletons.admin_skel.remove_user import Ui_Form as RemovingUserSkeleton
+from skeletons.system_blocked import Ui_Form as BlockingUser
+from os import system
 import sqlite3
 
 times_trying_to_auth = 0
 
 
-# class BlockWindow(QtWidgets.QWidget, Block_Skeleton):
-#     def __init__(self):
-#         super().__init__()
-#         self.setupUi(self)
-#
-#     def timer_Event(self):
-#         global time
-#         time = time.addSecs(1)
-#         print(time)
-#
-#     app = QtCore.QCoreApplication(argv)
-#
-#     timer = QtCore.QTimer()
-#     time = QtCore.QTime(0, 0, 0)
-#
-#     timer.timeout.connect(timer_Event)
-#     timer.start(100)
-#
-#     exit(app.exec_())
+class BlockWind(QtWidgets.QWidget, BlockingUser):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        self.timer = QtCore.QTimer()
+        self.time = QtCore.QTime(0, 0, 0)
+
+        self.timer.timeout.connect(self.timer_event)
+        self.timer.start(1000)
+
+        finish = QtWidgets.QAction("Quit", self)
+        finish.triggered.connect(self.closeEvent)
+
+        # menubar = self.menuBar()
+        # fmenu = menubar.addMenu("File")
+        # fmenu.addAction(finish)
+
+    def closeEvent(self, event):
+        event.ignore()
+        # close = QMessageBox.question(self,
+        #                              "QUIT",
+        #                              "Sure?",
+        #                              QMessageBox.Yes | QMessageBox.No)
+        # if close == QMessageBox.Yes:
+        #     event.accept()
+        # else:
+        #     event.ignore()
+
+    def timer_event(self):
+        self.time = self.time.addSecs(1)
+
+        if int(self.time.toString("m")) == 0 and int(self.time.toString("s")) == 5:
+            logging = open('sysfiles/isBlocked', 'w')
+            logging.truncate()
+            print(0, file=logging)
+            logging.close()
+
+            self.timer.stop()
+
+            self.reauthing = AuthorizationWindow()
+            self.reauthing.show()
+
+            self.close()
+            self.destroy()
+
+        minutes = str(4 - int(self.time.toString("m")))
+        seconds = str(59 - int(self.time.toString("s")))
+        self.minutes_render.display(minutes)
+        self.seconds_render.display(seconds)
+        print(self.time.toString("mm:ss"))
 
 
 class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
@@ -165,7 +198,18 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        # finish = QtWidgets.QAction("Quit", self)
+        # finish.triggered.connect(self.closeEvent)
+
         self.ui.Authorization.clicked.connect(self.auth)
+
+    # def closeEvent(self, event):
+    #     logging = open('sysfiles/isBlocked', 'r')
+    #     res = int(logging.readline())
+    #     if res:
+    #         QtWidgets.QMessageBox.about(self, 'Внимание!', 'Система заблокирована')
+    #     else:
+    #         event.accept()
 
     def auth(self):
         global times_trying_to_auth
@@ -186,7 +230,18 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
             if times_trying_to_auth == 3:
                 times_trying_to_auth = 0
 
-                # self.open_error()
+                logging = open('sysfiles/isBlocked', 'w')
+                logging.truncate()
+                print(1, file=logging)
+                logging.close()
+
+                # system("blocking.py 1")
+
+                self.blockinWindow = BlockWind()
+                self.blockinWindow.show()
+
+                self.close()
+
             else:
                 self.error = ErrorWindow(3 - times_trying_to_auth)
                 self.error.show()
@@ -202,7 +257,7 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
             else:
                 self.wind = MainWindowUser(login, posit)
                 self.wind.show()
-        self.close()
+            self.close()
 
         # add authing by password
 
@@ -212,6 +267,10 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
 
 def main():
+    logging = open('sysfiles\isBlocked', 'w')
+    print(0, file=logging)
+    logging.close()
+
     app = QtWidgets.QApplication(argv)
     application = AuthorizationWindow()
     application.show()
