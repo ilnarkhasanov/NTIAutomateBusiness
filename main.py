@@ -203,13 +203,15 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
         self.ui.Authorization.clicked.connect(self.auth)
 
-    # def closeEvent(self, event):
-    #     logging = open('sysfiles/isBlocked', 'r')
-    #     res = int(logging.readline())
-    #     if res:
-    #         QtWidgets.QMessageBox.about(self, 'Внимание!', 'Система заблокирована')
-    #     else:
-    #         event.accept()
+    def closeEvent(self, event):
+        close = QtWidgets.QMessageBox.question(self,
+                                               "QUIT",
+                                               "Sure?",
+                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if close == QtWidgets.QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
     def auth(self):
         global times_trying_to_auth
