@@ -18,6 +18,9 @@ class BlockWind(QtWidgets.QWidget, BlockingUser):
         super().__init__()
         self.setupUi(self)
 
+        self.minutes_render.display("4")
+        self.seconds_render.display("59")
+
         self.timer = QtCore.QTimer()
         self.time = QtCore.QTime(0, 0, 0)
 
@@ -45,12 +48,7 @@ class BlockWind(QtWidgets.QWidget, BlockingUser):
     def timer_event(self):
         self.time = self.time.addSecs(1)
 
-        if int(self.time.toString("m")) == 0 and int(self.time.toString("s")) == 5:
-            logging = open('sysfiles/isBlocked', 'w')
-            logging.truncate()
-            print(0, file=logging)
-            logging.close()
-
+        if int(self.time.toString("m")) == 4 and int(self.time.toString("s")) == 59:
             self.timer.stop()
 
             self.reauthing = AuthorizationWindow()
@@ -101,6 +99,8 @@ class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.deleteUser.setText('Удалить')
 
         self.deleteUser.clicked.connect(self.removingUserFunc)
 
@@ -203,16 +203,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
         self.ui.Authorization.clicked.connect(self.auth)
 
-    def closeEvent(self, event):
-        close = QtWidgets.QMessageBox.question(self,
-                                               "QUIT",
-                                               "Sure?",
-                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        if close == QtWidgets.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
-
     def auth(self):
         global times_trying_to_auth
 
@@ -231,11 +221,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
             if times_trying_to_auth == 3:
                 times_trying_to_auth = 0
-
-                logging = open('sysfiles/isBlocked', 'w')
-                logging.truncate()
-                print(1, file=logging)
-                logging.close()
 
                 # system("blocking.py 1")
 
@@ -269,10 +254,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
 
 def main():
-    logging = open('sysfiles\isBlocked', 'w')
-    print(0, file=logging)
-    logging.close()
-
     app = QtWidgets.QApplication(argv)
     application = AuthorizationWindow()
     application.show()
