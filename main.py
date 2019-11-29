@@ -9,11 +9,46 @@ from skeletons.admin_skel.remove_user import Ui_Form as RemovingUserSkeleton
 from skeletons.admin_skel.add_role import Ui_Form as AddingRoleSkeleton
 from skeletons.system_blocked import Ui_Form as BlockingUser
 from skeletons.admin_skel.loghistory import Ui_Form as LogHistorySkeleton
+from skeletons.admin_skel.remove_role import Ui_Form as RemoveRoleSkeleton
 import socket
 import datetime
 import sqlite3
 
 times_trying_to_auth = 0
+
+
+class RemoveRoleWindow(QtWidgets.QWidget, RemoveRoleSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+        c.execute('SELECT * FROM roles;')
+
+        for i in c.fetchall():
+            self.rolesBox.addItem(i[0])
+
+        conn.close()
+
+        self.deleteRole.clicked.connect(self.deleting_role_func)
+
+    def deleting_role_func(self):
+        role = self.rolesBox.currentText()
+
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+
+        c.execute(f'DELETE FROM roles WHERE posit="{role}"')
+        conn.commit()
+
+        QtWidgets.QMessageBox.about(self, 'Внимание!', f'Роль "{role}" успешно удалена')
+
+        # QtWidgets.QMessageBox.question(self, 'Внимание', f'Вы уверены, что хотите удалить роль {role}')
+
+        conn.close()
+
+        self.close()
 
 
 class LogHistoryWindow(QtWidgets.QWidget, LogHistorySkeleton):
@@ -46,7 +81,6 @@ class BlockWind(QtWidgets.QWidget, BlockingUser):
 
         finish = QtWidgets.QAction("Quit", self)
         finish.triggered.connect(self.closeEvent)
-
 
     def closeEvent(self, event):
         event.ignore()
@@ -86,6 +120,7 @@ class AddingRoleByAdmin(QtWidgets.QWidget, AddingRoleSkeleton):
             QtWidgets.QMessageBox.about(self, 'Внимание!', 'Такая роль уже существует!')
         else:
             c.execute(f'INSERT INTO roles (posit) VALUES ("{self.roleName.toPlainText()}")')
+            conn.commit()
             QtWidgets.QMessageBox.about(self, 'Внимание!', f'Роль "{self.roleName.toPlainText()}" успешно создана')
 
         conn.close()
@@ -183,8 +218,13 @@ class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
         self.removeUserButton.clicked.connect(self.removing_user)
         self.addRoleButton.clicked.connect(self.adding_role)
         self.logButton.clicked.connect(self.checking_log)
+        self.removeRoleButton.clicked.connect(self.removing_role)
 
         self.action.triggered.connect(self.leaving)
+
+    def removing_role(self):
+        self.remove_role_func = RemoveRoleWindow()
+        self.remove_role_func.show()
 
     def checking_log(self):
         self.log_window_func = LogHistoryWindow()
