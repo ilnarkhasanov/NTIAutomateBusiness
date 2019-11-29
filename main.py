@@ -6,11 +6,28 @@ from skeletons.incorrect_password import Ui_Form as Err_Auth_Window
 from skeletons.mainwind_admin import Ui_MainWindow as Mw_Admin
 from skeletons.admin_skel.add_user import Ui_Form as AddingUserSkeleton
 from skeletons.admin_skel.remove_user import Ui_Form as RemovingUserSkeleton
+from skeletons.admin_skel.add_role import Ui_Form as AddingRoleSkeleton
 from skeletons.system_blocked import Ui_Form as BlockingUser
-from os import system
+from skeletons.admin_skel.loghistory import Ui_Form as LogHistorySkeleton
+import socket
+import datetime
 import sqlite3
 
 times_trying_to_auth = 0
+
+
+class LogHistoryWindow(QtWidgets.QWidget, LogHistorySkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        log = open('sysfiles/log.txt', 'r')
+
+        data = ''
+        for line in log.readlines():
+            data += line
+        self.logBrowser.setText(data)
+        log.close()
 
 
 class BlockWind(QtWidgets.QWidget, BlockingUser):
@@ -30,20 +47,9 @@ class BlockWind(QtWidgets.QWidget, BlockingUser):
         finish = QtWidgets.QAction("Quit", self)
         finish.triggered.connect(self.closeEvent)
 
-        # menubar = self.menuBar()
-        # fmenu = menubar.addMenu("File")
-        # fmenu.addAction(finish)
 
     def closeEvent(self, event):
         event.ignore()
-        # close = QMessageBox.question(self,
-        #                              "QUIT",
-        #                              "Sure?",
-        #                              QMessageBox.Yes | QMessageBox.No)
-        # if close == QMessageBox.Yes:
-        #     event.accept()
-        # else:
-        #     event.ignore()
 
     def timer_event(self):
         self.time = self.time.addSecs(1)
@@ -64,17 +70,51 @@ class BlockWind(QtWidgets.QWidget, BlockingUser):
         print(self.time.toString("mm:ss"))
 
 
+class AddingRoleByAdmin(QtWidgets.QWidget, AddingRoleSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        self.addRoleButton.clicked.connect(self.addingRole)
+
+    def addingRole(self):
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+        c.execute(f'SELECT posit FROM roles WHERE posit="{self.roleName.toPlainText()}"')
+
+        if len(c.fetchall()):
+            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Такая роль уже существует!')
+        else:
+            c.execute(f'INSERT INTO roles (posit) VALUES ("{self.roleName.toPlainText()}")')
+            QtWidgets.QMessageBox.about(self, 'Внимание!', f'Роль "{self.roleName.toPlainText()}" успешно создана')
+
+        conn.close()
+
+
 class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+        c.execute('SELECT * FROM roles;')
+        arr = []
+        for i in c.fetchall():
+            arr.append(i[0])
+        conn.close()
+
+        for i in range(len(arr)):
+            self.positionOfNewUser.addItem(arr[i])
+
         self.registerNewUser.clicked.connect(self.registring)
 
     def registring(self):
         login = self.loginOfNewUser.text()
+
         posit = self.positionOfNewUser.currentText()
 
-        if (login == ""):
+        if login == "":
             QtWidgets.QMessageBox.about(self, "Внимание", "Логин пуст! Введите логин.")
         else:
             conn = sqlite3.connect('databases/data.db')
@@ -132,6 +172,8 @@ class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
         super().__init__()
         self.setupUi(self)
 
+        self.login = login
+
         self.setWindowTitle('Профиль - ' + login)
 
         self.your_login.setText("Ваш логин: " + login)
@@ -139,10 +181,33 @@ class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
 
         self.addUserButton.clicked.connect(self.adding_user)
         self.removeUserButton.clicked.connect(self.removing_user)
+        self.addRoleButton.clicked.connect(self.adding_role)
+        self.logButton.clicked.connect(self.checking_log)
 
         self.action.triggered.connect(self.leaving)
 
+    def checking_log(self):
+        self.log_window_func = LogHistoryWindow()
+        self.log_window_func.show()
+
+    def adding_role(self):
+        self.open_add_role = AddingRoleByAdmin()
+        self.open_add_role.show()
+
     def leaving(self):
+        log = open('sysfiles/log.txt', 'r')
+        data = log.readlines()
+        print(data)
+        log.close()
+        log = open('sysfiles/log.txt', 'w')
+        for i in data:
+            if i != "\n":
+                print(i, file=log)
+        print('leaving', datetime.datetime.today(), socket.gethostbyname(socket.gethostname()), self.login,
+              "Администратор/разработчик системы", sep=' - ',
+              file=log)
+        log.close()
+
         self.reauth = AuthorizationWindow()
         self.reauth.show()
         self.close()
@@ -186,6 +251,19 @@ class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
         self.action.triggered.connect(self.leavingThis)
 
     def leavingThis(self):
+        log = open('sysfiles/log.txt', 'r')
+        data = log.readlines()
+        print(data)
+        log.close()
+        log = open('sysfiles/log.txt', 'w')
+        for i in data:
+            if i != "\n":
+                print(i, file=log)
+        print('leaving', datetime.datetime.today(), socket.gethostbyname(socket.gethostname()), self.login, self.posit,
+              sep=' - ',
+              file=log)
+        log.close()
+
         self.reauth = AuthorizationWindow()
         self.reauth.show()
         self.close()
@@ -222,8 +300,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
             if times_trying_to_auth == 3:
                 times_trying_to_auth = 0
 
-                # system("blocking.py 1")
-
                 self.blockinWindow = BlockWind()
                 self.blockinWindow.show()
 
@@ -238,6 +314,19 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
             conn.close()
 
+            log = open('sysfiles/log.txt', 'r')
+            data = log.readlines()
+            print(data)
+            log.close()
+            log = open('sysfiles/log.txt', 'w')
+            for i in data:
+                if i != "\n":
+                    print(i, file=log)
+            print('login', datetime.datetime.today(), socket.gethostbyname(socket.gethostname()), login, posit,
+                  sep=' - ',
+                  file=log)
+            log.close()
+
             if posit == "Администратор/разработчик системы":
                 self.windadm = MainWindowAdmin(login)
                 self.windadm.show()
@@ -245,12 +334,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
                 self.wind = MainWindowUser(login, posit)
                 self.wind.show()
             self.close()
-
-        # add authing by password
-
-    # def open_error(self):
-    #     self.block = BlockWindow()
-    #     self.block.show()
 
 
 def main():

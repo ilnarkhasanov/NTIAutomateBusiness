@@ -74,41 +74,6 @@
      <height>22</height>
     </rect>
    </property>
-   <item>
-    <property name="text">
-     <string>Кладовщик</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Менеджер смены</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Инженер</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Тестировщик</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Руководитель отдела продаж</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Руководитель цеха производства</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Руководитель отдела закупок</string>
-    </property>
-   </item>
   </widget>
   <widget class="QPushButton" name="registerNewUser">
    <property name="geometry">
