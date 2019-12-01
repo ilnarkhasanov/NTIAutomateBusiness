@@ -13,9 +13,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(471, 102)
+        Form.resize(471, 81)
         self.label = QtWidgets.QLabel(Form)
-        self.label.setGeometry(QtCore.QRect(10, 30, 191, 21))
+        self.label.setGeometry(QtCore.QRect(10, 10, 191, 21))
         font = QtGui.QFont()
         font.setFamily("Open Sans SemiBold")
         font.setPointSize(10)
@@ -23,11 +23,8 @@ class Ui_Form(object):
         font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
-        self.userLogin = QtWidgets.QLineEdit(Form)
-        self.userLogin.setGeometry(QtCore.QRect(200, 30, 261, 22))
-        self.userLogin.setObjectName("userLogin")
         self.deleteUser = QtWidgets.QPushButton(Form)
-        self.deleteUser.setGeometry(QtCore.QRect(10, 60, 451, 28))
+        self.deleteUser.setGeometry(QtCore.QRect(10, 40, 451, 28))
         font = QtGui.QFont()
         font.setFamily("Open Sans SemiBold")
         font.setPointSize(10)
@@ -35,15 +32,18 @@ class Ui_Form(object):
         font.setWeight(75)
         self.deleteUser.setFont(font)
         self.deleteUser.setObjectName("deleteUser")
+        self.userBox = QtWidgets.QComboBox(Form)
+        self.userBox.setGeometry(QtCore.QRect(200, 10, 261, 22))
+        self.userBox.setObjectName("userBox")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Удалить пользователя"))
         self.label.setText(_translate("Form", "Логин пользователя: "))
-        self.deleteUser.setText(_translate("Form", "Регистрация"))
+        self.deleteUser.setText(_translate("Form", "Удалить пользователя"))
 
 
 if __name__ == "__main__":

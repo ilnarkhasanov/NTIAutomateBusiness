@@ -10,9 +10,12 @@ from skeletons.admin_skel.add_role import Ui_Form as AddingRoleSkeleton
 from skeletons.system_blocked import Ui_Form as BlockingUser
 from skeletons.admin_skel.loghistory import Ui_Form as LogHistorySkeleton
 from skeletons.admin_skel.remove_role import Ui_Form as RemoveRoleSkeleton
+from skeletons.putter_skel.add_detail import Ui_Form as Putter_AddDetailSkeleton
 import socket
 import datetime
 import sqlite3
+import xlsxwriter
+
 
 times_trying_to_auth = 0
 
@@ -42,11 +45,9 @@ class RemoveRoleWindow(QtWidgets.QWidget, RemoveRoleSkeleton):
         c.execute(f'DELETE FROM roles WHERE posit="{role}"')
         conn.commit()
 
-        QtWidgets.QMessageBox.about(self, 'Внимание!', f'Роль "{role}" успешно удалена')
-
-        # QtWidgets.QMessageBox.question(self, 'Внимание', f'Вы уверены, что хотите удалить роль {role}')
-
         conn.close()
+
+        QtWidgets.QMessageBox.about(self, 'Внимание!', f'Роль "{role}" успешно удалена')
 
         self.close()
 
@@ -177,29 +178,31 @@ class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
 
         self.deleteUser.setText('Удалить')
 
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+
+        c.execute('SELECT login FROM data;')
+
+        for i in c.fetchall():
+            self.userBox.addItem(i[0])
+
+        conn.close()
+
         self.deleteUser.clicked.connect(self.removingUserFunc)
 
     def removingUserFunc(self):
-        if self.userLogin.text() == "":
-            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Логин пуст! Введите логин')
-        else:
-            login = self.userLogin.text()
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
 
-            conn = sqlite3.connect('databases/data.db')
-            c = conn.cursor()
-            c.execute(f'SELECT * FROM data WHERE login="{login}";')
+        c.execute(f'DELETE FROM data WHERE login="{self.userBox.currentText()}"')
 
-            account_data = c.fetchall()
+        conn.commit()
+        conn.close()
 
-            if not len(account_data):
-                QtWidgets.QMessageBox.about(self, 'Внимание!', 'Такого логина не существует!')
+        QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                    f'Пользователь с логином {self.userBox.currentText()} успешно удалён')
 
-            else:
-                c.execute(f'DELETE FROM data WHERE login="{login}";')
-                conn.commit()
-                QtWidgets.QMessageBox.about(self, 'Внимание!', f'Аккаунт с логином {login} успешно удалён')
-                self.close()
-            conn.close()
+        self.close()
 
 
 class MainWindowAdmin(QtWidgets.QMainWindow, Mw_Admin):
