@@ -11,13 +11,101 @@ from skeletons.system_blocked import Ui_Form as BlockingUser
 from skeletons.admin_skel.loghistory import Ui_Form as LogHistorySkeleton
 from skeletons.admin_skel.remove_role import Ui_Form as RemoveRoleSkeleton
 from skeletons.putter_skel.add_detail import Ui_Form as Putter_AddDetailSkeleton
+from skeletons.mainwind_kladov import Ui_MainWindow as Mw_kladov
+from skeletons.putter_skel.giving_the_access import Ui_Form as Putter_GivingAccessSkeleton
+from skeletons.putter_skel.depriving_the_access import Ui_Form as Putter_DeprivingAccessSkeleton
 import socket
 import datetime
 import sqlite3
 import xlsxwriter
 
-
 times_trying_to_auth = 0
+
+
+class DepriveAccessWindow(QtWidgets.QWidget, Putter_DeprivingAccessSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+        c.execute('SELECT login FROM abilityToAddDetail;')
+        for i in c.fetchall():
+            self.loginsCombo.addItem(i[0])
+        conn.close()
+
+        self.depriveAccessButton.clicked.connect(self.depriving)
+
+    def depriving(self):
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+
+        c.execute(f'SELECT posit FROM data WHERE login="{self.loginsCombo.currentText()}"')
+        print(c.fetchall()[0][0])
+
+        if c.fetchall()[0][0] == "Кладовщик":
+            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Нельзя лишить кладовщика доступа к добавлению деталей')
+        else:
+            c.execute(f'DELETE FROM abilityToAddDetail WHERE login="{self.loginsCombo.currentText()}";')
+            conn.commit()
+            QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                        f'Пользователь {self.loginsCombo.currentText()} больше не имеет доступа к '
+                                        f'добавлению деталей')
+        conn.close()
+
+
+class GiveAccessWindow(QtWidgets.QWidget, Putter_GivingAccessSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+
+        c.execute('SELECT login FROM data;')
+
+        logins = []
+
+        for i in c.fetchall():
+            logins.append(i[0])
+
+        for i in logins:
+            self.loginsCombo.addItem(i)
+
+        conn.close()
+
+        self.giveAccessButton.clicked.connect(self.giving)
+
+    def giving(self):
+        conn = sqlite3.connect('databases/data.db')
+        c = conn.cursor()
+        c.execute(f'SELECT login FROM abilityToAddDetail WHERE login="{self.loginsCombo.currentText()}";')
+        if len(c.fetchall()):
+            QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                        f'Пользователь {self.loginsCombo.currentText()} уже имеет доступ к добавлению деталей')
+        else:
+            c.execute(f'INSERT INTO abilityToAddDetail (login) VALUES ("{self.loginsCombo.currentText()}")')
+            conn.commit()
+            QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                        f'Пользователь {self.loginsCombo.currentText()} получил доступ к добавлению деталей')
+        conn.close()
+
+
+class AddDetailWindow(QtWidgets.QWidget, Putter_AddDetailSkeleton):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+        self.addButton.clicked.connect(self.adding)
+
+    def adding(self):
+        workbook = xlsxwriter.Workbook('Details.xls')
+
+        worksheet = workbook.add_worksheet()
+
+        worksheet.write(0, 0, "Hello, World!")
+
+        workbook.close()
 
 
 class RemoveRoleWindow(QtWidgets.QWidget, RemoveRoleSkeleton):
@@ -164,6 +252,12 @@ class AddingUserByAdmin(QtWidgets.QWidget, AddingUserSkeleton):
             else:
                 c.execute(f'INSERT INTO data (login, posit, password) VALUES ("{login}", "{posit}", "123");')
                 conn.commit()
+
+                if posit == 'Кладовщик':
+                    c.execute(f'INSERT INTO abilityToAddDetail (login) VALUES ("{login}")')
+                    conn.commit()
+
+                conn.commit()
                 conn.close()
 
                 QtWidgets.QMessageBox.about(self, 'Внимание!', f'Пользователь с логином "{login}" успешно добавлен!')
@@ -195,8 +289,11 @@ class RemovingUserByAdmin(QtWidgets.QWidget, RemovingUserSkeleton):
         c = conn.cursor()
 
         c.execute(f'DELETE FROM data WHERE login="{self.userBox.currentText()}"')
-
         conn.commit()
+
+        c.execute(f'DELETE FROM abilityToAddDetail WHERE login="{self.userBox.currentText()}"')
+        conn.commit()
+
         conn.close()
 
         QtWidgets.QMessageBox.about(self, 'Внимание!',
@@ -277,6 +374,60 @@ class ErrorWindow(QtWidgets.QWidget, Err_Auth_Window):
         self.close()
 
 
+class MainWindowKladov(QtWidgets.QMainWindow, Mw_kladov):
+    def __init__(self, login, posit):
+        super().__init__()
+        self.setupUi(self)
+
+        self.login = login
+        self.posit = posit
+
+        self.setWindowTitle('Профиль - ' + login)
+
+        if posit == "Кладовщик":
+            self.giveAccessButton.setEnabled(1)
+            self.depriveAccessButton.setEnabled(1)
+
+        self.your_login.setText('Ваш логин: ' + login)
+        self.your_posit.setText('Ваша должность: ' + posit)
+
+        self.addDetail.clicked.connect(self.addingDetailFunc)
+        self.giveAccessButton.clicked.connect(self.givingAccess)
+        self.depriveAccessButton.clicked.connect(self.deprivingAccess)
+
+        self.action.triggered.connect(self.leavingThis)
+
+    def deprivingAccess(self):
+        self.depr = DepriveAccessWindow()
+        self.depr.show()
+
+    def givingAccess(self):
+        self.giveAccessWind = GiveAccessWindow()
+        self.giveAccessWind.show()
+
+    def leavingThis(self):
+        log = open('sysfiles/log.txt', 'r')
+        data = log.readlines()
+        print(data)
+        log.close()
+        log = open('sysfiles/log.txt', 'w')
+        for i in data:
+            if i != "\n":
+                print(i, file=log)
+        print('leaving', datetime.datetime.today(), socket.gethostbyname(socket.gethostname()), self.login, self.posit,
+              sep=' - ',
+              file=log)
+        log.close()
+
+        self.reauth = AuthorizationWindow()
+        self.reauth.show()
+        self.close()
+
+    def addingDetailFunc(self):
+        self.addingDetail = AddDetailWindow()
+        self.addingDetail.show()
+
+
 class MainWindowUser(QtWidgets.QMainWindow, Mw_user):
     def __init__(self, login, posit):
         super().__init__()
@@ -318,9 +469,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-
-        # finish = QtWidgets.QAction("Quit", self)
-        # finish.triggered.connect(self.closeEvent)
 
         self.ui.Authorization.clicked.connect(self.auth)
 
@@ -370,16 +518,39 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
                   file=log)
             log.close()
 
-            if posit == "Администратор/разработчик системы":
-                self.windadm = MainWindowAdmin(login)
-                self.windadm.show()
+            conn = sqlite3.connect('databases/data.db')
+            c = conn.cursor()
+
+            c.execute(f'SELECT login FROM abilityToAddDetail WHERE login="{login}"')
+
+            if len(c.fetchall()):
+                self.kladov_window = MainWindowKladov(login, posit)
+                self.kladov_window.show()
             else:
-                self.wind = MainWindowUser(login, posit)
-                self.wind.show()
+                if posit == "Администратор/разработчик системы":
+                    self.windadm = MainWindowAdmin(login)
+                    self.windadm.show()
+                else:
+                    self.wind = MainWindowUser(login, posit)
+                    self.wind.show()
+
+            conn.close()
             self.close()
 
 
 def main():
+    workbook = xlsxwriter.Workbook('Details.xls')
+
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, "NAME")
+    worksheet.write(0, 1, "TYPE")
+    worksheet.write(0, 2, "WEIGHT")
+    worksheet.write(0, 3, "ARTICLE")
+    worksheet.write(0, 4, "YEAROFISSUE")
+
+    workbook.close()
+
     app = QtWidgets.QApplication(argv)
     application = AuthorizationWindow()
     application.show()
