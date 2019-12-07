@@ -18,8 +18,20 @@ import socket
 import datetime
 import sqlite3
 import xlsxwriter
+import xlrd
+import xlwt
+from xlutils.copy import copy
 
 times_trying_to_auth = 0
+possible_symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+get_row = open('sysfiles/rowis.txt', 'r')
+row = int(get_row.readline())
+get_row.close()
+
+get_wrong_row = open('sysfiles/wrong_times.txt', 'r')
+wrong_row = int(get_wrong_row.readline())
+get_wrong_row.close()
 
 
 class DepriveAccessWindow(QtWidgets.QWidget, Putter_DeprivingAccessSkeleton):
@@ -99,13 +111,112 @@ class AddDetailWindow(QtWidgets.QWidget, Putter_AddDetailSkeleton):
         self.addButton.clicked.connect(self.adding)
 
     def adding(self):
-        workbook = xlsxwriter.Workbook('Details.xls')
+        global row, possible_symbols, wrong_row
 
-        worksheet = workbook.add_worksheet()
+        rb = xlrd.open_workbook('WrongDetails.xls')
+        wb = copy(rb)
+        sheet = wb.get_sheet("data")
 
-        worksheet.write(0, 0, "Hello, World!")
+        data = [self.nameOfDetail.toPlainText(),
+                self.Type.toPlainText(),
+                self.Weight.toPlainText(),
+                self.Article.toPlainText(),
+                self.YearOfIssue.date().toString()]
 
-        workbook.close()
+        if len(self.nameOfDetail.toPlainText()) < 100:
+            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Формат названия детали неверен')
+            sheet.write(wrong_row, 0, self.nameOfDetail.toPlainText())
+            sheet.write(wrong_row, 1, self.Type.toPlainText())
+            sheet.write(wrong_row, 2, self.Weight.toPlainText())
+            sheet.write(wrong_row, 3, self.Article.toPlainText())
+            sheet.write(wrong_row, 4, self.YearOfIssue.date().toString())
+
+            wrong_row += 1
+            set_new_wrong = open('sysfiles/wrong_times.txt', 'w')
+            print(wrong_row, file=set_new_wrong)
+            set_new_wrong.close()
+
+            wb.save('WrongDetails.xls')
+            return
+
+        if '' in data:
+            QtWidgets.QMessageBox.about(self, 'Внимание!', 'Данные введены неверно')
+            sheet.write(wrong_row, 0, self.nameOfDetail.toPlainText())
+            sheet.write(wrong_row, 1, self.Type.toPlainText())
+            sheet.write(wrong_row, 2, self.Weight.toPlainText())
+            sheet.write(wrong_row, 3, self.Article.toPlainText())
+            sheet.write(wrong_row, 4, self.YearOfIssue.date().toString())
+
+            wrong_row += 1
+            set_new_wrong = open('sysfiles/wrong_times.txt', 'w')
+            print(wrong_row, file=set_new_wrong)
+            set_new_wrong.close()
+
+            wb.save('WrongDetails.xls')
+            return
+
+        for symbol in self.Article.toPlainText():
+            if symbol not in possible_symbols:
+                QtWidgets.QMessageBox.about(self, 'Внимание!', 'Формат артикля детали неверен')
+                sheet.write(wrong_row, 0, self.nameOfDetail.toPlainText())
+                sheet.write(wrong_row, 1, self.Type.toPlainText())
+                sheet.write(wrong_row, 2, self.Weight.toPlainText())
+                sheet.write(wrong_row, 3, self.Article.toPlainText())
+                sheet.write(wrong_row, 4, self.YearOfIssue.date().toString())
+
+                wrong_row += 1
+                set_new_wrong = open('sysfiles/wrong_times.txt', 'w')
+                print(wrong_row, file=set_new_wrong)
+                set_new_wrong.close()
+
+                wb.save('WrongDetails.xls')
+                return
+
+        wb.save('WrongDetails.xls')
+
+        rb = xlrd.open_workbook('Details.xls')
+        wb = copy(rb)
+
+        isUsed = open('sysfiles/used.txt', 'r')
+        for detail in isUsed.readlines():
+            flag = True
+            for i in range(len(detail.split(' - '))):
+                if detail.split(' - ')[i] != data[i]:
+                    flag = False
+            if flag:
+                QtWidgets.QMessageBox.about(self, 'Внимание!',
+                                            'Такая деталь уже существует!')
+                isUsed.close()
+                return
+
+        self.YearOfIssue.setDisplayFormat("dd/MM/yyyy")
+
+        sheet = wb.get_sheet("data")
+
+        sheet.write(row, 0, self.nameOfDetail.toPlainText())
+        sheet.write(row, 1, self.Type.toPlainText())
+        sheet.write(row, 2, self.Weight.toPlainText())
+        sheet.write(row, 3, self.Article.toPlainText())
+        sheet.write(row, 4, self.YearOfIssue.date().toString())
+
+        wb.save('Details.xls')
+
+        row += 1
+        set_row = open('sysfiles/rowis.txt', 'w')
+        print(str(row), file=set_row)
+        set_row.close()
+
+        log = open('sysfiles/used.txt', 'r')
+        dataDoc = log.readlines()
+        log.close()
+        logDetail = open('sysfiles/used.txt', 'w')
+        for i in dataDoc:
+            if i != "\n":
+                print(i, file=logDetail)
+        print(' - '.join(data))
+        logDetail.close()
+
+        QtWidgets.QMessageBox.about(self, "Внимание!", "Деталь успешно загружена")
 
 
 class RemoveRoleWindow(QtWidgets.QWidget, RemoveRoleSkeleton):
@@ -394,8 +505,28 @@ class MainWindowKladov(QtWidgets.QMainWindow, Mw_kladov):
         self.addDetail.clicked.connect(self.addingDetailFunc)
         self.giveAccessButton.clicked.connect(self.givingAccess)
         self.depriveAccessButton.clicked.connect(self.deprivingAccess)
+        self.chooseDirButton.clicked.connect(self.choosingDir)
+        self.chooseDirButtonWrong.clicked.connect()
 
         self.action.triggered.connect(self.leavingThis)
+
+    def choosingDirWrong(self):
+        fileway = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        if fileway == "":
+            return
+        rb = xlrd.open_workbook('WrongDetails.xls')
+        wb = copy(rb)
+        wb.save('//'.join((fileway + '/WrongDetails.xls').split('/')))
+        QtWidgets.QMessageBox.about(self, 'Внимание!', 'Данные успешно сохранены')
+
+    def choosingDir(self):
+        fileway = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        if fileway == "":
+            return
+        rb = xlrd.open_workbook('Details.xls')
+        wb = copy(rb)
+        wb.save('//'.join((fileway + '/Details.xls').split('/')))
+        QtWidgets.QMessageBox.about(self, 'Внимание!', 'Данные о деталях успешно сохранены')
 
     def deprivingAccess(self):
         self.depr = DepriveAccessWindow()
@@ -539,18 +670,6 @@ class AuthorizationWindow(QtWidgets.QWidget, Ui_Form):
 
 
 def main():
-    workbook = xlsxwriter.Workbook('Details.xls')
-
-    worksheet = workbook.add_worksheet()
-
-    worksheet.write(0, 0, "NAME")
-    worksheet.write(0, 1, "TYPE")
-    worksheet.write(0, 2, "WEIGHT")
-    worksheet.write(0, 3, "ARTICLE")
-    worksheet.write(0, 4, "YEAROFISSUE")
-
-    workbook.close()
-
     app = QtWidgets.QApplication(argv)
     application = AuthorizationWindow()
     application.show()
